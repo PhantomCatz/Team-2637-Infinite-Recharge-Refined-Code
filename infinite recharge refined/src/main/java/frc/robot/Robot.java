@@ -189,7 +189,9 @@ public class Robot extends TimedRobot
     shooter.debugSmartDashboard();
     shooter.smartdashboard();
 
-    SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
+
+    //Can't store double solenoid power
+    //SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
     }
 
   @Override
