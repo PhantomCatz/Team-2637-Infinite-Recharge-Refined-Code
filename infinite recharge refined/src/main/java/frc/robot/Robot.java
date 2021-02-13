@@ -18,8 +18,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.Autonomous.CatzAutonomousPaths;
-import frc.Autonomous.CatzPathChooser;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -212,8 +210,6 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-    
-    CatzAutonomousPaths.monitorAutoState("STRAIGHT");
 
   }
 

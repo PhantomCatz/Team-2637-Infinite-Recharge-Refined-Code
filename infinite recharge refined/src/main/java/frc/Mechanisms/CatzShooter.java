@@ -6,7 +6,6 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.Autonomous.CatzAutonomousPaths;
 import frc.robot.Robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
