@@ -187,7 +187,7 @@ public class Robot extends TimedRobot
     shooter.debugSmartDashboard();
     shooter.smartdashboard();
 
-    SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
+    //SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
     }
 
   @Override

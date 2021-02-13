@@ -5,10 +5,11 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANDigitalInput;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+//import com.revrobotics.CANSparkMax;
+//import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
+//import com.revrobotics.CANSparkMax.IdleMode;
+//import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 //import edu.wpi.first.wpilibj.DigitalInput;  //Currently using SparkMax Data Port
 import edu.wpi.first.wpilibj.Timer;
@@ -20,17 +21,18 @@ public class CatzIntake
 {
     private final int INTAKE_FIGURE_8_MC_CAN_ID             = 10;
     private final int INTAKE_ROLLER_MC_CAN_ID               = 11;
-    private final int INTAKE_DEPLOY_MC_CAN_ID               = 12;
+    private final int INTAKE_DEPLOY_DS_A_ID                 = 5;
+    private final int INTAKE_DEPLOY_DS_B_ID                 = 6;
 
     private final double MTR_POWER_FIGURE8                  = -0.9;
     private final double MTR_POWER_ROLLER                   =  0.6;
 
-    private final double COMPRESSION_POWER                  = 0.3;
+    //private final double COMPRESSION_POWER                  = 0.3;
 
-    private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.25;
-    private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
-    private final double INTAKE_MOTOR_POWER_START_STOW      = -0.25;
-    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.2;
+    //private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.25;
+    //private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
+    //private final double INTAKE_MOTOR_POWER_START_STOW      = -0.25;
+    //private final double INTAKE_MOTOR_POWER_END_STOW        = -0.2;
 
     final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
     final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 0.400;
@@ -46,7 +48,7 @@ public class CatzIntake
     private WPI_VictorSPX intakeFigure8MtrCtrl;
     public  WPI_TalonSRX  intakeRollerMtrCtrl; // changed to public because dataport is being used on drivetrain?
 
-    private CANSparkMax intakeDeployMtrCtrl;
+    private DoubleSolenoid intakeDeployMtrCtrl;
 
     private CANDigitalInput intakeDeployedLimitSwitch;
     private CANDigitalInput intakeStowedLimitSwitch;
@@ -65,23 +67,25 @@ public class CatzIntake
     {
         intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID); 
         intakeRollerMtrCtrl  = new WPI_TalonSRX(INTAKE_ROLLER_MC_CAN_ID);
-        intakeDeployMtrCtrl  = new CANSparkMax (INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
+        intakeDeployMtrCtrl = new DoubleSolenoid(INTAKE_DEPLOY_DS_A_ID, INTAKE_DEPLOY_DS_B_ID);
 
-        intakeDeployedLimitSwitch = intakeDeployMtrCtrl.getForwardLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
-        intakeStowedLimitSwitch   = intakeDeployMtrCtrl.getReverseLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
+//intakeDeployMtrCtrl  = new CANSparkMax (INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
+
+        //intakeDeployedLimitSwitch = intakeDeployMtrCtrl.getForwardLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
+        //intakeStowedLimitSwitch   = intakeDeployMtrCtrl.getReverseLimitSwitch(LimitSwitchPolarity.kNormallyOpen);
 
         //Reset configuration
         intakeFigure8MtrCtrl.configFactoryDefault();
         intakeRollerMtrCtrl.configFactoryDefault();
 
-        intakeDeployMtrCtrl.restoreFactoryDefaults();
+        //intakeDeployMtrCtrl.restoreFactoryDefaults();
 
         //Set roller MC to coast intakeMode
         intakeFigure8MtrCtrl.setNeutralMode(NeutralMode.Coast);
         intakeRollerMtrCtrl.setNeutralMode(NeutralMode.Coast);
 
         //Set deploy MC to brake intakeMode
-        intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
+        //intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
 
         deployPowerCountLimit = (int) Math.round((DEPLOY_REDUCE_POWER_TIME_OUT_SEC / INTAKE_THREAD_WAITING_TIME) + 0.5);
         stowPowerCountLimit   = (int) Math.round((STOW_REDUCE_POWER_TIME_OUT_SEC   / INTAKE_THREAD_WAITING_TIME) + 0.5);
@@ -119,7 +123,7 @@ public class CatzIntake
                 switch(intakeMode)
                 {
                     case INTAKE_MODE_DEPLOY_START:
-                        intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_DEPLOY);
+                        intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kForward);
                         intakeMode = INTAKE_MODE_DEPLOY_REDUCE_POWER;
 
                         timeCounter++;
@@ -128,7 +132,7 @@ public class CatzIntake
                     case INTAKE_MODE_DEPLOY_REDUCE_POWER:
                         if(timeCounter > deployPowerCountLimit)
                         {
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_DEPLOY);
+                            intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kOff);
                             intakeMode = INTAKE_MODE_NULL;
                             intakeDeployed = true;
                         }
@@ -136,7 +140,7 @@ public class CatzIntake
                     break;
 
                     case INTAKE_MODE_STOW_START:
-                        intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
+                        intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kReverse);
                         intakeMode = INTAKE_MODE_STOW_REDUCE_POWER;
 
                         timeCounter++;
@@ -145,7 +149,7 @@ public class CatzIntake
                     case INTAKE_MODE_STOW_REDUCE_POWER:
                         if(timeCounter > stowPowerCountLimit)
                         {
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_STOW);
+                            intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kOff);
                             //intakeMode = INTAKE_MODE_NULL;
                             intakeDeployed = false;
                         }
@@ -154,16 +158,16 @@ public class CatzIntake
 
                     case INTAKE_MODE_MANUAL_CONTROL:
                         if(Robot.xboxAux.getBumper(Hand.kLeft)){
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_DEPLOY);
+                            intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kForward);
                         }else if(Robot.xboxAux.getBumper(Hand.kRight)){
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
+                            intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kReverse);
                         }else{
-                            intakeDeployMtrCtrl.set(0.0);
+                            intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kOff);
                         }
                     break;
 
                     default:
-                        intakeDeployMtrCtrl.set(0.0);
+                        intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kOff);
                     break;
                 }
                 Timer.delay(INTAKE_THREAD_WAITING_TIME); //put at end
@@ -191,19 +195,19 @@ public class CatzIntake
     }
     public void stopDeploying()
     {
-        intakeDeployMtrCtrl.set(0);
+        intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kOff);
     }
 
     public void applyBallCompression()
     {
-        intakeDeployMtrCtrl.set(COMPRESSION_POWER);
+        intakeDeployMtrCtrl.set(DoubleSolenoid.Value.kForward);
         /*if(intakeDeployed == true)
         {
             intakeDeployMtrCtrl.set(COMPRESSION_POWER);
         }*/
     }
 
-    public double getDeployMotorPower()
+    public DoubleSolenoid.Value getDeployMotorPower()
     {
         return intakeDeployMtrCtrl.get();
     }
